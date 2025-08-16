@@ -6,11 +6,11 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-l
 RewriteRule . index.html [L]
 
-# Domain yönlendirmeleri
+# Domain redirects
 RewriteCond %{HTTP_HOST} ^www\.stordalens\.com [NC]
 RewriteRule ^(.*)$ https://stordalens.com/$1 [L,R=301]
 
-# HTTPS yönlendirmesi
+# HTTPS redirect
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 

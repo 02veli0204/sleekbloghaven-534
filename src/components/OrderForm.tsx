@@ -12,7 +12,6 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
-
 interface OrderFormProps {
   onClose: () => void;
 }
@@ -26,8 +25,8 @@ export default function OrderForm({ onClose }: OrderFormProps) {
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [submitting, setSubmitting] = useState(false);
-  
-  // Kullanıcı giriş yapmışsa bilgilerini otomatik doldur
+
+  // Kullanıcı giriş yapmışsa isim otomatik doldur
   useEffect(() => {
     if (user?.user_metadata?.full_name) {
       setCustomerName(user.user_metadata.full_name);
@@ -36,8 +35,7 @@ export default function OrderForm({ onClose }: OrderFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Form doğrulama
+
     if (!customerName.trim()) {
       toast.error(t('order.validationError') || t('order.customerName') + ' ' + t('order.error'));
       return;
@@ -56,8 +54,9 @@ export default function OrderForm({ onClose }: OrderFormProps) {
     setSubmitting(true);
 
     try {
-      // Sipariş verilerini hazırla - sadece gerekli alanları içerecek şekilde basitleştirildi
+      // Sipariş verisi hazırlanıyor
       const orderData = {
+        user_id: user?.id || null, // Kullanıcı giriş yapmamış olabilir
         customer_name: customerName.trim(),
         customer_phone: customerPhone.trim(),
         items: items.map(item => ({
@@ -71,23 +70,25 @@ export default function OrderForm({ onClose }: OrderFormProps) {
         payment_method: paymentMethod,
         status: 'pending'
       };
-      
+
       console.log('Sipariş gönderiliyor:', JSON.stringify(orderData, null, 2));
-      
-      // Doğrudan Supabase'e sipariş ekle
+
       const { data, error } = await supabase
         .from('orders')
         .insert([orderData])
         .select()
         .single();
-      
+
       if (error) {
         console.error('Sipariş hatası:', error);
-        toast.error(t('order.error') || 'Sipariş oluşturulurken hata oluştu');
+        toast.error(
+          (t('order.error') || 'Sipariş oluşturulurken hata oluştu') +
+          (error.message ? `: ${error.message}` : '')
+        );
         setSubmitting(false);
         return;
       }
-      
+
       console.log('Sipariş başarılı:', data);
       toast.success(t('order.success') || 'Siparişiniz başarıyla alındı!');
       clearCart();
@@ -103,6 +104,11 @@ export default function OrderForm({ onClose }: OrderFormProps) {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="text-center">{t('order.title')}</CardTitle>
+        {!user && (
+          <p className="text-center text-sm text-muted-foreground mt-2">
+            {t('order.guestOrder')} - {t('order.loginOptional')}
+          </p>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -175,13 +181,13 @@ export default function OrderForm({ onClose }: OrderFormProps) {
               <span className="font-medium">{t('order.total')}:</span>
               <span className="text-lg font-bold text-primary">{totalPrice.toFixed(2)} kr</span>
             </div>
-            
+
             <div className="flex gap-2">
               <Button type="button" variant="outline" onClick={onClose} className="flex-1">
                 {t('order.cancel')}
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={submitting || !customerName.trim() || !customerPhone.trim() || items.length === 0}
                 className="flex-1"
               >

@@ -1,18 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Menu, X, Settings, LogOut, LogIn, User } from 'lucide-react';
+import { ShoppingCart, Menu, X, Settings, LogOut, LogIn, User, Globe } from 'lucide-react';
 import { useCart } from './CartContext';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useLanguage, Language } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
 import CartPanel from './CartPanel';
 import { Link } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { totalItems, setIsOpen } = useCart();
-  const { t } = useLanguage();
-  const { user, signOut } = useAuth();
+  const { t, language, setLanguage } = useLanguage();
+  const { user, signOut, isAdmin } = useAuth();
+  
+  const languages = [
+    { code: 'no', name: 'Norsk', flag: '🇳🇴' },
+    { code: 'en', name: 'English', flag: '🇬🇧' },
+    { code: 'tr', name: 'Türkçe', flag: '🇹🇷' }
+  ];
+  
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,12 +70,12 @@ const Header = () => {
                 className="relative w-40 h-12 flex items-center"
               >
                 <img
-                  src="/images/balkan-logo.svg"
+                  src="/images/balkan-logo.png"
                   alt="Balkan Porsgrunn - Hjem"
                   className="w-full h-full object-contain"
                   draggable="false" // Prevent image dragging
                 />
-                <span className="ml-2 font-bold text-lg text-balkan-red">Balkan Porsgrunn</span>
+                <span className="ml-2 font-bold text-lg text-balkan-red"></span>
               </motion.div>
             </Link>
 
@@ -105,44 +116,72 @@ const Header = () => {
                 {t('nav.contact')}
                 <span className="absolute inset-x-0 bottom-0 h-0.5 bg-balkan-yellow transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
               </button>
-              <Link 
-                to="/dashboard"
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors"
-              >
-                {t('nav.dashboard')}
-              </Link>
+              {user && isAdmin && (
+                <Link 
+                  to="/dashboard"
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors"
+                >
+                  {t('nav.dashboard')}
+                </Link>
+              )}
             </nav>
 
             {/* Settings, Auth and Cart Buttons */}
             <div className="flex items-center gap-2">
+              {/* Language Selector Dropdown */}
+              <div className="hidden md:block mr-2">
+                <Select value={language} onValueChange={(value) => handleLanguageChange(value as Language)}>
+                  <SelectTrigger className="w-[130px] bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800 border-green-200 dark:border-green-800">
+                    <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <SelectValue>
+                          {languages.find(lang => lang.code === language)?.flag} {languages.find(lang => lang.code === language)?.name}
+                        </SelectValue>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-800 border-green-200 dark:border-green-800">
+                      {languages.map((lang) => (
+                        <SelectItem key={lang.code} value={lang.code} className="cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/30 text-gray-800 dark:text-gray-200">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{lang.flag}</span>
+                          <span>{lang.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
               {user ? (
                 <>
                   <Link 
                     to="/dashboard"
-                    className="hidden md:block p-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors"
+                    className="hidden md:flex items-center gap-1 px-3 py-1.5 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-md transition-colors"
                   >
-                    <Settings className="h-5 w-5" />
+                    <Settings className="h-4 w-4" />
+                    <span>{t('nav.dashboard')}</span>
                   </Link>
                   <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => {
                       signOut();
-                      window.location.href = '/';
                     }}
-                    className="hidden md:block p-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors"
+                    className="hidden md:flex items-center gap-1 px-3 py-1.5 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800 rounded-md transition-colors ml-2"
                     title={t('auth.signOut')}
                   >
-                    <LogOut className="h-5 w-5" />
+                    <LogOut className="h-4 w-4" />
+                    <span>{t('auth.signOut')}</span>
                   </motion.button>
                 </>
               ) : (
                 <Link 
                   to="/auth"
-                  className="hidden md:block p-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors"
+                  className="hidden md:flex items-center gap-1 px-3 py-1.5 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800 rounded-md transition-colors"
                   title={t('auth.signIn')}
                 >
-                  <LogIn className="h-5 w-5" />
+                  <LogIn className="h-4 w-4" />
+                  <span>{t('auth.signIn')}</span>
                 </Link>
               )}
               <motion.button
@@ -219,22 +258,46 @@ const Header = () => {
                   {t('nav.contact')}
                   <span className="absolute inset-x-0 bottom-0 h-0.5 bg-balkan-yellow transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200"></span>
                 </button>
+                {/* Mobile Language Selector */}
+                <div className="mx-4 my-4">
+                  <div className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    {t('nav.language')}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          handleLanguageChange(lang.code as Language);
+                        }}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${language === lang.code ? 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
+                      >
+                        <span className="text-lg">{lang.flag}</span>
+                        <span>{lang.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
                 {user ? (
                   <>
-                    <Link 
-                      to="/dashboard"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="block text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors px-4 py-2"
-                    >
-                      {t('nav.dashboard')}
-                    </Link>
+                    {isAdmin && (
+                      <Link 
+                        to="/dashboard"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-2 mx-4 my-2 px-3 py-2 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-md transition-colors"
+                      >
+                        <Settings className="h-4 w-4" />
+                        {t('nav.dashboard')}
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         setIsMobileMenuOpen(false);
                         signOut();
-                        window.location.href = '/';
                       }}
-                      className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors px-4 py-2 w-full text-left"
+                      className="flex items-center gap-2 mx-4 my-2 px-3 py-2 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800 rounded-md transition-colors w-auto text-left"
                     >
                       <LogOut className="h-4 w-4" />
                       {t('auth.signOut')}
@@ -244,7 +307,7 @@ const Header = () => {
                   <Link 
                     to="/auth"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors px-4 py-2"
+                    className="flex items-center gap-2 mx-4 my-2 px-3 py-2 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800 rounded-md transition-colors"
                   >
                     <LogIn className="h-4 w-4" />
                     {t('auth.signIn')}

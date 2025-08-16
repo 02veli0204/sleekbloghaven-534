@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Phone, MapPin, Clock, ArrowDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -124,7 +123,7 @@ const HeroSection = () => {
             transition={{ duration: 0.6 }}
             className="inline-block mb-6"
           >
-            <span className="bg-balkan-yellow text-balkan-dark px-6 py-2 text-sm font-bold uppercase tracking-wider">
+            <span className="bg-balkan-yellow text-balkan-dark px-6 py-2 text-sm font-bold uppercase tracking-wider ml-[10rem]">
               {t('hero.welcome')}
             </span>
           </motion.div>

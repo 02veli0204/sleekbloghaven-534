@@ -94,6 +94,7 @@ export function useOrders() {
     payment_method: string;
     status: string;
     notes?: string;
+    user_id?: string;
   }) => {
     try {
       console.log('createOrder çağrıldı:', JSON.stringify(orderData, null, 2));
@@ -113,8 +114,7 @@ export function useOrders() {
 
       console.log('Supabase\'e sipariş gönderiliyor...', JSON.stringify(cleanOrderData, null, 2));
       
-      // Supabase istemcisinin RLS bypass ayarını kontrol et
-      console.log('Supabase headers:', supabase.headers);
+      // RLS bypass kontrolü kaldırıldı - headers özelliği protected
       
       const { data, error } = await supabase
         .from('orders')

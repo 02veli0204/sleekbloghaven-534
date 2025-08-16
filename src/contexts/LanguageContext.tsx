@@ -271,6 +271,11 @@ const translations = {
     'order.cancel': 'Cancel',
     'order.submit': 'Place Order',
     'order.submitting': 'Submitting...',
+    'order.guestOrder': 'You are ordering as a guest',
+    'order.loginOptional': 'Login is optional',
+    'order.validationError': 'Please fill in all required fields',
+    'order.error': 'Error',
+    'order.success': 'Your order has been successfully received!',
     
     // Orders Manager
     'orders.title': 'Order Management',
@@ -445,6 +450,11 @@ const translations = {
     'order.cancel': 'İptal',
     'order.submit': 'Sipariş Ver',
     'order.submitting': 'Gönderiliyor...',
+    'order.guestOrder': 'Misafir olarak sipariş veriyorsunuz',
+    'order.loginOptional': 'Giriş yapmak isteğe bağlıdır',
+    'order.validationError': 'Lütfen tüm gerekli alanları doldurun',
+    'order.error': 'Hata',
+    'order.success': 'Siparişiniz başarıyla alındı!',
     
     // Orders Manager
     'orders.title': 'Sipariş Yönetimi',
@@ -515,7 +525,13 @@ const translations = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
+  // Always use Norwegian as default, regardless of browser settings
   const [language, setLanguage] = useState<Language>('no'); // Norwegian as default
+  
+  // Force Norwegian language on initial load
+  useEffect(() => {
+    setLanguage('no');
+  }, []);
 
   const t = (key: string): string => {
     // First check in the imported JSON files

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AuthContextType {
   user: User | null;
@@ -28,6 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Set up auth state listener
@@ -85,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (!error) {
-      toast.success('Kayıt başarılı! E-posta adresinizi kontrol edin.');
+      toast.success(t('auth.signupSuccess') || 'Registrering vellykket! Sjekk e-posten din.');
     }
 
     return { error };
@@ -98,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (!error) {
-      toast.success('Giriş başarılı!');
+      toast.success(t('auth.loginSuccess') || 'Innlogging vellykket!');
     }
 
     return { error };
@@ -107,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setIsAdmin(false);
-    toast.success('Çıkış yapıldı!');
+    toast.success(t('auth.signOut') || 'Utlogging vellykket!');
   };
 
   return (

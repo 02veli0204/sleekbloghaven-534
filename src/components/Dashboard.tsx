@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 // Add new state for tracking expanded categories
 const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
 
@@ -15,6 +17,27 @@ const toggleCategory = (categoryId: number) => {
 };
 
 // Update the categories section in the JSX
+// Example categories data (replace with your actual data or import)
+const categories = [
+  {
+    id: 1,
+    name: "Category 1",
+    icon: "📁",
+    subcategories: [
+      { id: 11, name: "Subcategory 1-1", icon: "📄" },
+      { id: 12, name: "Subcategory 1-2", icon: "📄" }
+    ]
+  },
+  {
+    id: 2,
+    name: "Category 2",
+    icon: "📁",
+    subcategories: [
+      { id: 21, name: "Subcategory 2-1", icon: "📄" }
+    ]
+  }
+];
+
 <div className="space-y-1">
   {categories.map((category) => (
     <div key={category.id} className="space-y-1">

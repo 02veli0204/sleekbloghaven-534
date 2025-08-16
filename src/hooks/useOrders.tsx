@@ -191,7 +191,7 @@ export function useOrders() {
       return { data: null, error: null };
     } catch (error) {
       console.error('Error deleting order:', error);
-      toast.error(t('dashboard.deleteOrder') || 'Sipariş silinirken hata oluştu');
+      toast.error(t('dashboard.deleteOrderError') || 'Sipariş silinirken hata oluştu');
       return { data: null, error };
     }
   };

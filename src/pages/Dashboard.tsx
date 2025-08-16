@@ -132,8 +132,8 @@ ${order.notes ? `NOT: ${order.notes}` : ''}
       if (error) throw error;
       
       toast({
-        title: "Sipariş Silindi",
-        description: "Sipariş başarıyla silindi",
+        title: t('dashboard.deleteOrder') || "Sipariş Silindi",
+        description: t('dashboard.deleteOrderSuccess') || "Sipariş başarıyla silindi",
       });
     } catch (error) {
       toast({

@@ -139,5 +139,8 @@
   "auth.signOut": "Logg ut",
   "auth.signIn": "Logg inn",
   "order.guestOrder": "Du bestiller som gjest",
-  "order.loginOptional": "Innlogging er valgfritt"
+  "order.loginOptional": "Innlogging er valgfritt",
+  "dashboard.deleteOrder": "Bestilling slettet",
+  "dashboard.deleteOrderSuccess": "Bestillingen ble slettet",
+  "dashboard.deleteOrderError": "Feil ved sletting av bestilling"
 }

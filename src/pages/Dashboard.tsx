@@ -45,10 +45,10 @@ const Dashboard = () => {
     return <Navigate to="/" replace />;
   }
 
-  // Otomatik siparişler sayfasına dönüş (1 dakika boşta kalırsa)
+  // Otomatik siparişler sayfasına dönüş (5 dakika boşta kalırsa)
   useEffect(() => {
     const idleTimer = setInterval(() => {
-      if (Date.now() - lastActivity > 60000) { // 1 dakika
+      if (Date.now() - lastActivity > 300000) { // 5 dakika
         setActiveTab('orders');
       }
     }, 5000);
@@ -293,13 +293,14 @@ ${order.notes ? `NOT: ${order.notes}` : ''}
         >
           <Tabs defaultValue="orders" value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-7 mb-4 bg-gray-100 dark:bg-gray-800">
-              <TabsTrigger value="orders" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">{t('admin.tabs.orders')}</TabsTrigger>
-              <TabsTrigger value="daily-orders" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">{t('admin.tabs.daily')}</TabsTrigger>
-              <TabsTrigger value="categories" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">{t('admin.tabs.categories')}</TabsTrigger>
-              <TabsTrigger value="menu" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">{t('admin.tabs.menu')}</TabsTrigger>
-              <TabsTrigger value="contact" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">{t('admin.tabs.contact')}</TabsTrigger>
-              <TabsTrigger value="hours" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">{t('admin.tabs.hours')}</TabsTrigger>
-              <TabsTrigger value="settings" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">{t('admin.tabs.settings')}</TabsTrigger>
+              // TabsTrigger bileşenini güncelleyin (orders sekmesi için id ekleyin)
+              <TabsTrigger id="orders-tab" value="orders" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white font-medium">{t('admin.tabs.orders')}</TabsTrigger>
+              <TabsTrigger value="daily-orders" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white font-medium">{t('admin.tabs.daily')}</TabsTrigger>
+              <TabsTrigger value="categories" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white font-medium">{t('admin.tabs.categories')}</TabsTrigger>
+              <TabsTrigger value="menu" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white font-medium">{t('admin.tabs.menu')}</TabsTrigger>
+              <TabsTrigger value="contact" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white font-medium">{t('admin.tabs.contact')}</TabsTrigger>
+              <TabsTrigger value="hours" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white font-medium">{t('admin.tabs.hours')}</TabsTrigger>
+                <TabsTrigger value="settings" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white font-medium">{t('admin.tabs.settings')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="daily-orders" className="space-y-4">
@@ -407,212 +408,257 @@ ${order.notes ? `NOT: ${order.notes}` : ''}
             </TabsContent>
 
             <TabsContent value="orders" className="space-y-4">
-              {/* İki Bölümlü Sipariş Ekranı */}
-              <div className="grid grid-cols-2 gap-4 h-[calc(100vh-280px)]">
-                {/* Aktif Siparişler */}
-                <Card className="bg-white dark:bg-gray-800 border-none shadow-lg overflow-hidden">
-                  <CardHeader className="bg-yellow-500 text-white p-3">
-                    <CardTitle className="text-lg font-bold flex items-center justify-between">
-                      <span>{t('dashboard.activeOrders')}</span>
-                      <Badge className="bg-white text-yellow-600">
-                        {activeOrders.length}
-                      </Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0 h-full overflow-y-auto">
-                    {loading ? (
-                      <div className="flex justify-center items-center h-32">
-                        <span>{t('dashboard.loading')}</span>
-                      </div>
-                    ) : activeOrders.length === 0 ? (
-                      <div className="flex flex-col justify-center items-center h-32 text-gray-500">
-                        <Package className="w-8 h-8 mb-2" />
-                        <span>{t('dashboard.noActiveOrders')}</span>
-                      </div>
-                    ) : (
-                      <div className="space-y-2 p-3">
-                        {activeOrders.map((order) => (
-                          <motion.div
-                            key={order.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-800"
-                          >
-                            {/* Sipariş Başlığı */}
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <h4 className="font-bold text-sm text-gray-900 dark:text-white">{order.customer_name}</h4>
-                                <p className="text-xs text-gray-600 dark:text-gray-300 flex items-center gap-1">
-                                  <Phone className="w-3 h-3" />
-                                  {order.customer_phone}
-                                </p>
-                              </div>
-                              <div className="flex flex-col items-end gap-1">
-                                <Badge className={`text-white ${
-                                  order.status === 'pending' ? 'bg-yellow-500' :
-                                  order.status === 'preparing' ? 'bg-blue-500' :
-                                  order.status === 'ready' ? 'bg-green-500' : 'bg-gray-500'
-                                }`}>
-                                  {order.status === 'pending' ? t('dashboard.orderStatus.pending') :
-                                   order.status === 'preparing' ? t('dashboard.orderStatus.preparing') :
-                                   order.status === 'ready' ? t('dashboard.orderStatus.ready') : order.status}
-                                </Badge>
-                                <span className="text-xs text-gray-400 flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
-                                  {format(new Date(order.created_at), 'HH:mm')}
-                                </span>
-                              </div>
-                            </div>
+  {/* Aktif Siparişler */}
+  <Card className="bg-white dark:bg-gray-800 border-none shadow-lg">
+    <CardHeader className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
+      <CardTitle className="text-xl font-bold flex items-center justify-between">
+        <span>{t('dashboard.activeOrders')}</span>
+        <Badge variant="secondary" className="bg-white text-red-600">
+          {activeOrders.length} {t('dashboard.orders').toLowerCase()}
+        </Badge>
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-4">
+      {activeOrders.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <Package className="w-12 h-12 mx-auto mb-4" />
+          <p>{t('dashboard.noActiveOrders')}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {activeOrders.map((order) => {
+            // Son 30 saniye içinde gelen siparişleri vurgula
+            const isNew =
+              Date.now() - new Date(order.created_at).getTime() < 30000;
 
-                            {/* Ürünler */}
-                            <div className="space-y-1 mb-2">
-                              {order.items.map((item: any, index: number) => (
-                                <div key={index} className="flex justify-between text-xs text-gray-800 dark:text-gray-200">
-                                  <span>{item.quantity}x {item.name}</span>
-                                  <span>{(item.price * item.quantity).toFixed(2)} kr</span>
-                                </div>
-                              ))}
-                            </div>
+            return (
+              <motion.div
+                key={order.id}
+                initial={isNew ? { scale: 0.95, opacity: 0 } : false}
+                animate={isNew ? { scale: 1, opacity: 1 } : false}
+                transition={{ duration: 0.5 }}
+                className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                  isNew
+                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20 animate-pulse'
+                    : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
+                }`}
+              >
+                {/* Sipariş içeriği */}
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h4 className="font-bold text-lg text-gray-900 dark:text-white">
+                      {order.customer_name}
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-1">
+                      <Phone className="w-4 h-4" />
+                      {order.customer_phone}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge
+                      className={`text-white ${
+                        order.status === 'pending'
+                          ? 'bg-yellow-500'
+                          : order.status === 'preparing'
+                          ? 'bg-blue-500'
+                          : order.status === 'ready'
+                          ? 'bg-green-500'
+                          : 'bg-gray-500'
+                      }`}
+                    >
+                      {order.status === 'pending'
+                        ? t('dashboard.orderStatus.pending')
+                        : order.status === 'preparing'
+                        ? t('dashboard.orderStatus.preparing')
+                        : order.status === 'ready'
+                        ? t('dashboard.orderStatus.ready')
+                        : order.status}
+                    </Badge>
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {format(new Date(order.created_at), 'HH:mm')}
+                    </span>
+                  </div>
+                </div>
 
-                            {/* Ödeme ve Toplam */}
-                            <div className="flex justify-between items-center mb-2 pt-2 border-t border-gray-200 dark:border-gray-600">
-                              <div className="flex items-center gap-1 text-xs text-gray-700 dark:text-gray-300">
-                                <CreditCard className="w-3 h-3" />
-                                {order.payment_method === 'cash' ? t('dashboard.payment.cash') :
-                                 order.payment_method === 'card' ? t('dashboard.payment.card') : t('dashboard.payment.vipps')}
-                              </div>
-                              <span className="font-bold text-sm text-green-600 dark:text-green-400">
-                                {order.total_amount.toFixed(2)} kr
-                              </span>
-                            </div>
+                {/* Ürünler */}
+                <div className="space-y-1 mb-2">
+                  {order.items.map((item: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex justify-between text-xs text-gray-800 dark:text-gray-200"
+                    >
+                      <span>
+                        {item.quantity}x {item.name}
+                      </span>
+                      <span>{(item.price * item.quantity).toFixed(2)} kr</span>
+                    </div>
+                  ))}
+                </div>
 
-                            {/* Not */}
-                            {order.notes && (
-                              <div className="text-xs bg-blue-50 dark:bg-blue-900/20 p-2 rounded mb-2">
-                                <strong className="text-blue-800 dark:text-blue-300">{t('dashboard.note')}:</strong> 
-                                <span className="text-blue-700 dark:text-blue-200 ml-1">{order.notes}</span>
-                              </div>
-                            )}
+                {/* Ödeme ve Toplam */}
+                <div className="flex justify-between items-center mb-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center gap-1 text-xs text-gray-700 dark:text-gray-300">
+                    <CreditCard className="w-3 h-3" />
+                    {order.payment_method === 'cash'
+                      ? t('dashboard.payment.cash')
+                      : order.payment_method === 'card'
+                      ? t('dashboard.payment.card')
+                      : t('dashboard.payment.vipps')}
+                  </div>
+                  <span className="font-bold text-sm text-green-600 dark:text-green-400">
+                    {order.total_amount.toFixed(2)} kr
+                  </span>
+                </div>
 
-                            {/* Aksiyonlar */}
-                            <div className="flex gap-2">
-                              <Select
-                                value={order.status}
-                                onValueChange={(value: any) => updateOrderStatus(order.id, value)}
-                              >
-                                <SelectTrigger className="h-8 text-xs flex-1 bg-white dark:bg-gray-700 border border-gray-300 text-gray-900 dark:text-white">
-                                  <SelectValue className="text-gray-900 dark:text-white font-medium" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-white">
-                                  <SelectItem className="text-black" value="pending">{t('dashboard.orderStatus.pending')}</SelectItem>
-                                  <SelectItem className="text-black" value="preparing">{t('dashboard.orderStatus.preparing')}</SelectItem>
-                                  <SelectItem className="text-black" value="ready">{t('dashboard.orderStatus.ready')}</SelectItem>
-                                  <SelectItem className="text-black" value="delivered">{t('dashboard.orderStatus.delivered')}</SelectItem>
-                                  <SelectItem className="text-black" value="cancelled">{t('dashboard.orderStatus.cancelled')}</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => printOrder(order)}
-                                className="h-8 px-2"
-                                title={t('dashboard.print')}
-                              >
-                                <Printer className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                {/* Not */}
+                {order.notes && (
+                  <div className="text-xs bg-blue-50 dark:bg-blue-900/20 p-2 rounded mb-2">
+                    <strong className="text-blue-800 dark:text-blue-300">
+                      {t('dashboard.note')}:
+                    </strong>
+                    <span className="text-blue-700 dark:text-blue-200 ml-1">
+                      {order.notes}
+                    </span>
+                  </div>
+                )}
 
-                {/* Tamamlanan Siparişler */}
-                <Card className="bg-white dark:bg-gray-800 border-none shadow-lg overflow-hidden">
-                  <CardHeader className="bg-green-500 text-white p-3">
-                    <CardTitle className="text-lg font-bold flex items-center justify-between">
-                      <span>{t('dashboard.completedOrders')}</span>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="bg-white text-green-600">
-                          {completedOrders.length}
-                        </Badge>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-6 px-2 text-xs bg-white text-green-600 hover:bg-gray-100"
-                          onClick={clearCompletedOrders}
-                        >
-                          <Trash2 className="w-3 h-3 mr-1" />
-                          {t('dashboard.clear')}
-                        </Button>
-                      </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0 h-full overflow-y-auto">
-                    {completedOrders.length === 0 ? (
-                      <div className="flex flex-col justify-center items-center h-32 text-gray-500">
-                        <Check className="w-8 h-8 mb-2" />
-                        <span>{t('dashboard.noCompletedOrders')}</span>
-                      </div>
-                    ) : (
-                      <div className="space-y-2 p-3">
-                        {completedOrders.map((order) => (
-                          <motion.div
-                            key={order.id}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="border border-green-200 dark:border-green-700 rounded-lg p-3 bg-green-50 dark:bg-green-900/20"
-                          >
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <h4 className="font-bold text-sm">{order.customer_name}</h4>
-                                <p className="text-xs text-gray-500">{order.customer_phone}</p>
-                              </div>
-                              <div className="flex flex-col items-end gap-1">
-                                <Badge className="bg-green-500">{t('dashboard.orderStatus.delivered')}</Badge>
-                                <span className="text-xs text-gray-400">
-                                  {format(new Date(order.created_at), 'HH:mm')}
-                                </span>
-                              </div>
-                            </div>
-                            
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-gray-600">
-                                {order.items.length} {t('dashboard.products')}
-                              </span>
-                              <span className="font-bold text-sm text-green-600">
-                                {order.total_amount.toFixed(2)} kr
-                              </span>
-                            </div>
-                            
-                            <div className="mt-2 flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => printOrder(order)}
-                                className="h-6 px-2 text-xs flex-1"
-                              >
-                                <Printer className="w-3 h-3 mr-1" />
-                                {t('dashboard.print')}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => deleteOrder(order.id)}
-                                className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                {/* Aksiyonlar */}
+                <div className="flex gap-2">
+                  <Select
+                    value={order.status}
+                    onValueChange={(value: any) =>
+                      updateOrderStatus(order.id, value)
+                    }
+                  >
+                    <SelectTrigger className="h-8 text-xs flex-1 bg-white dark:bg-gray-700 border border-gray-300 text-gray-900 dark:text-white">
+                      <SelectValue className="text-gray-900 dark:text-white font-medium" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem className="text-black" value="pending">
+                        {t('dashboard.orderStatus.pending')}
+                      </SelectItem>
+                      <SelectItem className="text-black" value="preparing">
+                        {t('dashboard.orderStatus.preparing')}
+                      </SelectItem>
+                      <SelectItem className="text-black" value="ready">
+                        {t('dashboard.orderStatus.ready')}
+                      </SelectItem>
+                      <SelectItem className="text-black" value="delivered">
+                        {t('dashboard.orderStatus.delivered')}
+                      </SelectItem>
+                      <SelectItem className="text-black" value="cancelled">
+                        {t('dashboard.orderStatus.cancelled')}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => printOrder(order)}
+                    className="h-8 px-2"
+                    title={t('dashboard.print')}
+                  >
+                    <Printer className="w-3 h-3" />
+                  </Button>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+    </CardContent>
+  </Card>
+
+  {/* Tamamlanan Siparişler */}
+  <Card className="bg-white dark:bg-gray-800 border-none shadow-lg overflow-hidden">
+    <CardHeader className="bg-green-500 text-white p-3">
+      <CardTitle className="text-lg font-bold flex items-center justify-between">
+        <span>{t('dashboard.completedOrders')}</span>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="bg-white text-green-600">
+            {completedOrders.length}
+          </Badge>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-6 px-2 text-xs bg-white text-green-600 hover:bg-gray-100"
+            onClick={clearCompletedOrders}
+          >
+            <Trash2 className="w-3 h-3 mr-1" />
+            {t('dashboard.clear')}
+          </Button>
+        </div>
+      </CardTitle>
+    </CardHeader>
+    <CardContent className="p-0 h-full overflow-y-auto">
+      {completedOrders.length === 0 ? (
+        <div className="flex flex-col justify-center items-center h-32 text-gray-500">
+          <Check className="w-8 h-8 mb-2" />
+          <span>{t('dashboard.noCompletedOrders')}</span>
+        </div>
+      ) : (
+        <div className="space-y-2 p-3">
+          {completedOrders.map((order) => (
+            <motion.div
+              key={order.id}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="border border-green-200 dark:border-green-700 rounded-lg p-3 bg-green-50 dark:bg-green-900/20"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <h4 className="font-bold text-sm">{order.customer_name}</h4>
+                  <p className="text-xs text-gray-500">
+                    {order.customer_phone}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <Badge className="bg-green-500">
+                    {t('dashboard.orderStatus.delivered')}
+                  </Badge>
+                  <span className="text-xs text-gray-400">
+                    {format(new Date(order.created_at), 'HH:mm')}
+                  </span>
+                </div>
               </div>
-            </TabsContent>
+
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-600">
+                  {order.items.length} {t('dashboard.products')}
+                </span>
+                <span className="font-bold text-sm text-green-600">
+                  {order.total_amount.toFixed(2)} kr
+                </span>
+              </div>
+
+              <div className="mt-2 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => printOrder(order)}
+                  className="h-6 px-2 text-xs flex-1"
+                >
+                  <Printer className="w-3 h-3 mr-1" />
+                  {t('dashboard.print')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => deleteOrder(order.id)}
+                  className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </CardContent>
+  </Card>
+</TabsContent>
+
 
             <TabsContent value="contact" className="space-y-6">
               <Card className="bg-white dark:bg-gray-800 border-none shadow-lg">

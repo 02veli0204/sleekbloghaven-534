@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
@@ -21,14 +21,23 @@ export interface Order {
   updated_at: string;
 }
 
+// Bildirim sesi için Audio nesnesi
+const notificationSound = new Audio('/sounds/notification.mp3');
+
 export function useOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
+  const notificationRef = useRef(notificationSound);
 
   useEffect(() => {
     fetchOrders();
-    setupRealtimeSubscription();
+    const cleanup = setupRealtimeSubscription();
+    
+    // Ses dosyasını önceden yükle
+    notificationRef.current.load();
+    
+    return cleanup;
   }, []);
 
   const fetchOrders = async () => {
@@ -61,8 +70,33 @@ export function useOrders() {
         },
         (payload) => {
           console.log('New order received:', payload.new);
-          setOrders(prev => [payload.new as Order, ...prev]);
-          toast.success(t('dashboard.newOrder') || 'Yeni sipariş geldi!');
+          const newOrder = payload.new as Order;
+          
+          // Siparişi state'e ekle - en başa
+          setOrders(prev => [newOrder, ...prev]);
+          
+          // Sesli uyarı çal
+          try {
+            notificationRef.current.currentTime = 0; // Sesi başa sar
+            notificationRef.current.play().catch(err => {
+              console.error('Ses çalma hatası:', err);
+            });
+          } catch (err) {
+            console.error('Ses çalma hatası:', err);
+          }
+          
+          // Bildirim göster - daha detaylı bilgilerle
+          toast.success(t('dashboard.newOrder') || 'Yeni sipariş geldi!', {
+            description: `${newOrder.customer_name} - ${newOrder.total_amount.toFixed(2)} kr`,
+            duration: 10000, // 10 saniye göster
+            action: {
+              label: 'Görüntüle',
+              onClick: () => {
+                // Burada bir işlem yapabilirsiniz, örneğin siparişler sekmesine geçiş
+                document.getElementById('orders-tab')?.click();
+              },
+            },
+          });
         }
       )
       .on(

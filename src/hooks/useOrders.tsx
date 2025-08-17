@@ -29,15 +29,20 @@ export function useOrders() {
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
   const notificationRef = useRef(notificationSound);
+  const subscriptionRef = useRef<any>(null);
 
   useEffect(() => {
     fetchOrders();
-    const cleanup = setupRealtimeSubscription();
+    setupRealtimeSubscription();
     
     // Ses dosyasını önceden yükle
     notificationRef.current.load();
     
-    return cleanup;
+    return () => {
+      if (subscriptionRef.current) {
+        supabase.removeChannel(subscriptionRef.current);
+      }
+    };
   }, []);
 
   const fetchOrders = async () => {
@@ -59,30 +64,44 @@ export function useOrders() {
   };
 
   const setupRealtimeSubscription = () => {
-    const channel = supabase
+    // Önceki subscription'ı temizle
+    if (subscriptionRef.current) {
+      supabase.removeChannel(subscriptionRef.current);
+    }
+
+    subscriptionRef.current = supabase
       .channel('orders-changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
         (payload) => {
+          console.log('Real-time event received:', payload);
+          
           if (payload.eventType === 'INSERT') {
             const newOrder = payload.new as Order;
+            console.log('New order received:', newOrder);
             setOrders(prev => [newOrder, ...prev]);
+            
+            // Bildirim sesi çal
             try {
               notificationRef.current.currentTime = 0;
               notificationRef.current.play().catch(() => {});
             } catch {}
+            
+            // Toast bildirimi göster
             toast.success(t('dashboard.newOrder') || 'Yeni sipariş geldi!', {
               description: `${newOrder.customer_name} - ${newOrder.total_amount.toFixed(2)} kr`,
               duration: 10000,
             });
           } else if (payload.eventType === 'UPDATE') {
+            console.log('Order updated:', payload.new);
             setOrders(prev =>
               prev.map(order =>
                 order.id === payload.new.id ? payload.new as Order : order
               )
             );
           } else if (payload.eventType === 'DELETE') {
+            console.log('Order deleted:', payload.old);
             setOrders(prev =>
               prev.filter(order => order.id !== payload.old.id)
             );
@@ -91,9 +110,10 @@ export function useOrders() {
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // Subscription durumunu kontrol et
+    subscriptionRef.current.on('system', {}, (payload) => {
+      console.log('Subscription status:', payload);
+    });
   };
 
   const createOrder = async (orderData: {

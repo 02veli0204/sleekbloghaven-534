@@ -39,8 +39,6 @@ const Dashboard = () => {
     address: 'Storgata 101, 3921 Porsgrunn',
     hours: 'Man-Tor: 10:00-22:00, Fre: 10:00-23:00, Lör: 13:00-23:00, Søn: 13:00-22:00'
   });
-  // Bu state'i kaldırıyoruz
-  // const [lastOrderId, setLastOrderId] = useState<string | null>(null);
 
   // Sadece admin kullanıcıları Dashboard'a erişebilir
   if (!user || !isAdmin) {
@@ -69,6 +67,10 @@ const Dashboard = () => {
     updateActivity();
   };
 
+  // Real-time güncellemeler için orders değişikliklerini dinle
+  useEffect(() => {
+    console.log('Orders updated in Dashboard:', orders.length);
+  }, [orders]);
   const printOrder = (order: any) => {
     const receipt = `
 BALKAN RESTAURANT
@@ -226,28 +228,6 @@ ${order.notes ? `NOT: ${order.notes}` : ''}
     }
   ];
 
-  // Audio elementi ekle - Bu kısmı kaldırıyoruz çünkü useOrders hook'unda zaten var
-  // const audioRef = React.useRef<HTMLAudioElement>(null);
-
-  // Bu useEffect'i tamamen kaldırıyoruz - useOrders hook'unda zaten real-time bildirim var
-  // useEffect(() => {
-  //   if (orders.length === 0) return;
-  //   const latestOrder = orders.reduce((a, b) =>
-  //     new Date(a.created_at) > new Date(b.created_at) ? a : b
-  //   );
-  //   if (lastOrderId && latestOrder.id !== lastOrderId) {
-  //     if (audioRef.current) {
-  //       audioRef.current.currentTime = 0;
-  //       audioRef.current.play();
-  //     }
-  //     toast({
-  //       title: "Yeni Sipariş!",
-  //       description: `${latestOrder.customer_name} adlı müşteriden yeni sipariş geldi.`,
-  //       variant: "default"
-  //     });
-  //   }
-  //   setLastOrderId(latestOrder.id);
-  // }, [orders]);
 
   return (
     <div className="min-h-screen bg-balkan-cream dark:bg-gray-900 pt-4">
@@ -267,10 +247,15 @@ ${order.notes ? `NOT: ${order.notes}` : ''}
               Velkomst, {user?.email}
             </p>
           </div>
-          <Button variant="outline" onClick={signOut} size="sm">
-            <LogOut className="mr-2 h-4 w-4" />
-            Logg ut
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="text-xs text-gray-500">
+              Aktif: {activeOrders.length} | Toplam: {orders.length}
+            </div>
+            <Button variant="outline" onClick={signOut} size="sm">
+              <LogOut className="mr-2 h-4 w-4" />
+              Logg ut
+            </Button>
+          </div>
         </motion.div>
 
         {/* Compact Stats - Tıklanabilir */}
@@ -445,7 +430,12 @@ ${order.notes ? `NOT: ${order.notes}` : ''}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4">
-{/* Audio element removed since audioRef is not defined */}
+        {/* Real-time status indicator */}
+        <div className="mb-2 text-xs text-gray-500 flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          Real-time aktif - Yeni siparişler otomatik görünecek
+        </div>
+        
         {activeOrders.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Package className="w-12 h-12 mx-auto mb-4" />

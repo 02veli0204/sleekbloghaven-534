@@ -63,54 +63,30 @@ export function useOrders() {
       .channel('orders-changes')
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'orders'
-        },
+        { event: '*', schema: 'public', table: 'orders' },
         (payload) => {
-          console.log('New order received:', payload.new);
-          const newOrder = payload.new as Order;
-          
-          // Siparişi state'e ekle - en başa
-          setOrders(prev => [newOrder, ...prev]);
-          
-          // Sesli uyarı çal
-          try {
-            notificationRef.current.currentTime = 0; // Sesi başa sar
-            notificationRef.current.play().catch(err => {
-              console.error('Ses çalma hatası:', err);
+          if (payload.eventType === 'INSERT') {
+            const newOrder = payload.new as Order;
+            setOrders(prev => [newOrder, ...prev]);
+            try {
+              notificationRef.current.currentTime = 0;
+              notificationRef.current.play().catch(() => {});
+            } catch {}
+            toast.success(t('dashboard.newOrder') || 'Yeni sipariş geldi!', {
+              description: `${newOrder.customer_name} - ${newOrder.total_amount.toFixed(2)} kr`,
+              duration: 10000,
             });
-          } catch (err) {
-            console.error('Ses çalma hatası:', err);
+          } else if (payload.eventType === 'UPDATE') {
+            setOrders(prev =>
+              prev.map(order =>
+                order.id === payload.new.id ? payload.new as Order : order
+              )
+            );
+          } else if (payload.eventType === 'DELETE') {
+            setOrders(prev =>
+              prev.filter(order => order.id !== payload.old.id)
+            );
           }
-          
-          // Bildirim göster - daha detaylı bilgilerle
-          toast.success(t('dashboard.newOrder') || 'Yeni sipariş geldi!', {
-            description: `${newOrder.customer_name} - ${newOrder.total_amount.toFixed(2)} kr`,
-            duration: 10000, // 10 saniye göster
-            action: {
-              label: 'Görüntüle',
-              onClick: () => {
-                // Burada bir işlem yapabilirsiniz, örneğin siparişler sekmesine geçiş
-                document.getElementById('orders-tab')?.click();
-              },
-            },
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'orders'
-        },
-        (payload) => {
-          console.log('Order updated:', payload.new);
-          setOrders(prev => prev.map(order => 
-            order.id === payload.new.id ? payload.new as Order : order
-          ));
         }
       )
       .subscribe();

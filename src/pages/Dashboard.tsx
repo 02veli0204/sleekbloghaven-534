@@ -39,7 +39,9 @@ const Dashboard = () => {
     address: 'Storgata 101, 3921 Porsgrunn',
     hours: 'Man-Tor: 10:00-22:00, Fre: 10:00-23:00, Lör: 13:00-23:00, Søn: 13:00-22:00'
   });
-  
+  // Bu state'i kaldırıyoruz
+  // const [lastOrderId, setLastOrderId] = useState<string | null>(null);
+
   // Sadece admin kullanıcıları Dashboard'a erişebilir
   if (!user || !isAdmin) {
     return <Navigate to="/" replace />;
@@ -224,6 +226,29 @@ ${order.notes ? `NOT: ${order.notes}` : ''}
     }
   ];
 
+  // Audio elementi ekle - Bu kısmı kaldırıyoruz çünkü useOrders hook'unda zaten var
+  // const audioRef = React.useRef<HTMLAudioElement>(null);
+
+  // Bu useEffect'i tamamen kaldırıyoruz - useOrders hook'unda zaten real-time bildirim var
+  // useEffect(() => {
+  //   if (orders.length === 0) return;
+  //   const latestOrder = orders.reduce((a, b) =>
+  //     new Date(a.created_at) > new Date(b.created_at) ? a : b
+  //   );
+  //   if (lastOrderId && latestOrder.id !== lastOrderId) {
+  //     if (audioRef.current) {
+  //       audioRef.current.currentTime = 0;
+  //       audioRef.current.play();
+  //     }
+  //     toast({
+  //       title: "Yeni Sipariş!",
+  //       description: `${latestOrder.customer_name} adlı müşteriden yeni sipariş geldi.`,
+  //       variant: "default"
+  //     });
+  //   }
+  //   setLastOrderId(latestOrder.id);
+  // }, [orders]);
+
   return (
     <div className="min-h-screen bg-balkan-cream dark:bg-gray-900 pt-4">
       <div className="container mx-auto px-4 py-2">
@@ -293,7 +318,7 @@ ${order.notes ? `NOT: ${order.notes}` : ''}
         >
           <Tabs defaultValue="orders" value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-7 mb-4 bg-gray-100 dark:bg-gray-800">
-              // TabsTrigger bileşenini güncelleyin (orders sekmesi için id ekleyin)
+              
               <TabsTrigger id="orders-tab" value="orders" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white font-medium">{t('admin.tabs.orders')}</TabsTrigger>
               <TabsTrigger value="daily-orders" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white font-medium">{t('admin.tabs.daily')}</TabsTrigger>
               <TabsTrigger value="categories" className="text-gray-800 dark:text-gray-200 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-black dark:data-[state=active]:text-white font-medium">{t('admin.tabs.categories')}</TabsTrigger>
@@ -408,40 +433,33 @@ ${order.notes ? `NOT: ${order.notes}` : ''}
             </TabsContent>
 
             <TabsContent value="orders" className="space-y-4">
-  {/* Aktif Siparişler */}
-  <Card className="bg-white dark:bg-gray-800 border-none shadow-lg">
-    <CardHeader className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
-      <CardTitle className="text-xl font-bold flex items-center justify-between">
-        <span>{t('dashboard.activeOrders')}</span>
-        <Badge variant="secondary" className="bg-white text-red-600">
-          {activeOrders.length} {t('dashboard.orders').toLowerCase()}
-        </Badge>
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="p-4">
-      {activeOrders.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <Package className="w-12 h-12 mx-auto mb-4" />
-          <p>{t('dashboard.noActiveOrders')}</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {activeOrders.map((order) => {
-            // Son 30 saniye içinde gelen siparişleri vurgula
-            const isNew =
-              Date.now() - new Date(order.created_at).getTime() < 30000;
-
-            return (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {/* Aktif Siparişler - Sol Sütun */}
+    <Card className="bg-white dark:bg-gray-800 border-none shadow-lg">
+      <CardHeader className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-4">
+        <CardTitle className="text-xl font-bold flex items-center justify-between">
+          <span>{t('dashboard.activeOrders')}</span>
+          <Badge variant="secondary" className="bg-white text-red-600">
+            {activeOrders.length} {t('dashboard.orders').toLowerCase()}
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-4">
+{/* Audio element removed since audioRef is not defined */}
+        {activeOrders.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <Package className="w-12 h-12 mx-auto mb-4" />
+            <p>{t('dashboard.noActiveOrders')}</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {activeOrders.map((order) => (
               <motion.div
                 key={order.id}
-                initial={isNew ? { scale: 0.95, opacity: 0 } : false}
-                animate={isNew ? { scale: 1, opacity: 1 } : false}
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
-                  isNew
-                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20 animate-pulse'
-                    : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
-                }`}
+                className="border rounded-lg p-4 hover:shadow-md transition-shadow border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
               >
                 {/* Sipariş içeriği */}
                 <div className="flex justify-between items-start mb-3">
@@ -563,100 +581,112 @@ ${order.notes ? `NOT: ${order.notes}` : ''}
                   </Button>
                 </div>
               </motion.div>
-            );
-          })}
-        </div>
-      )}
-    </CardContent>
-  </Card>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
 
-  {/* Tamamlanan Siparişler */}
-  <Card className="bg-white dark:bg-gray-800 border-none shadow-lg overflow-hidden">
-    <CardHeader className="bg-green-500 text-white p-3">
-      <CardTitle className="text-lg font-bold flex items-center justify-between">
-        <span>{t('dashboard.completedOrders')}</span>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="bg-white text-green-600">
-            {completedOrders.length}
-          </Badge>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-6 px-2 text-xs bg-white text-green-600 hover:bg-gray-100"
-            onClick={clearCompletedOrders}
-          >
-            <Trash2 className="w-3 h-3 mr-1" />
-            {t('dashboard.clear')}
-          </Button>
-        </div>
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="p-0 h-full overflow-y-auto">
-      {completedOrders.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-32 text-gray-500">
-          <Check className="w-8 h-8 mb-2" />
-          <span>{t('dashboard.noCompletedOrders')}</span>
-        </div>
-      ) : (
-        <div className="space-y-2 p-3">
-          {completedOrders.map((order) => (
-            <motion.div
-              key={order.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="border border-green-200 dark:border-green-700 rounded-lg p-3 bg-green-50 dark:bg-green-900/20"
+    {/* Tamamlanan Siparişler - Sağ Sütun */}
+    <Card className="bg-white dark:bg-gray-800 border-none shadow-lg">
+      <CardHeader className="bg-green-500 text-white p-3">
+        <CardTitle className="text-lg font-bold flex items-center justify-between">
+          <span>{t('dashboard.completedOrders')}</span>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="bg-white text-green-600">
+              {completedOrders.length}
+            </Badge>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-6 px-2 text-xs bg-white text-green-600 hover:bg-gray-100"
+              onClick={clearCompletedOrders}
             >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h4 className="font-bold text-sm">{order.customer_name}</h4>
-                  <p className="text-xs text-gray-500">
-                    {order.customer_phone}
-                  </p>
+              <Trash2 className="w-3 h-3 mr-1" />
+              {t('dashboard.clear')}
+            </Button>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0 h-full overflow-y-auto">
+        {completedOrders.length === 0 ? (
+          <div className="flex flex-col justify-center items-center h-32 text-gray-500">
+            <Check className="w-8 h-8 mb-2" />
+            <span>{t('dashboard.noCompletedOrders')}</span>
+          </div>
+        ) : (
+          <div className="space-y-2 p-3">
+            {completedOrders.slice(0, 5).map((order) => (
+              <motion.div
+                key={order.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="border border-green-200 dark:border-green-700 rounded-lg p-3 bg-green-50 dark:bg-green-900/20"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h4 className="font-bold text-sm">{order.customer_name}</h4>
+                    <p className="text-xs text-gray-500">
+                      {order.customer_phone}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge className="bg-green-500">
+                      {t('dashboard.orderStatus.delivered')}
+                    </Badge>
+                    <span className="text-xs text-gray-400">
+                      {format(new Date(order.created_at), 'HH:mm')}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <Badge className="bg-green-500">
-                    {t('dashboard.orderStatus.delivered')}
-                  </Badge>
-                  <span className="text-xs text-gray-400">
-                    {format(new Date(order.created_at), 'HH:mm')}
+
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-600">
+                    {order.items.length} {t('dashboard.products')}
+                  </span>
+                  <span className="font-bold text-sm text-green-600">
+                    {order.total_amount.toFixed(2)} kr
                   </span>
                 </div>
-              </div>
 
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-600">
-                  {order.items.length} {t('dashboard.products')}
-                </span>
-                <span className="font-bold text-sm text-green-600">
-                  {order.total_amount.toFixed(2)} kr
-                </span>
-              </div>
-
-              <div className="mt-2 flex gap-2">
+                <div className="mt-2 flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => printOrder(order)}
+                    className="h-6 px-2 text-xs flex-1"
+                  >
+                    <Printer className="w-3 h-3 mr-1" />
+                    {t('dashboard.print')}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => deleteOrder(order.id)}
+                    className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              </motion.div>
+            ))}
+            {completedOrders.length > 5 && (
+              <div className="text-center mt-2">
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => printOrder(order)}
-                  className="h-6 px-2 text-xs flex-1"
+                  onClick={() => setActiveTab('daily-orders')}
+                  className="text-green-600"
                 >
-                  <Printer className="w-3 h-3 mr-1" />
-                  {t('dashboard.print')}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => deleteOrder(order.id)}
-                  className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="w-3 h-3" />
+                  {t('dashboard.showMore')}
                 </Button>
               </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
-    </CardContent>
-  </Card>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  </div>
 </TabsContent>
 
 

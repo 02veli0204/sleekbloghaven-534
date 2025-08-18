@@ -69,7 +69,12 @@ const Dashboard = () => {
 
   // Real-time güncellemeler için orders değişikliklerini dinle
   useEffect(() => {
-    console.log('Orders updated in Dashboard:', orders.length);
+    console.log('📊 Dashboard orders updated:', {
+      total: orders.length,
+      active: activeOrders.length,
+      completed: completedOrders.length,
+      today: todayOrders.length
+    });
   }, [orders]);
   const printOrder = (order: any) => {
     const receipt = `

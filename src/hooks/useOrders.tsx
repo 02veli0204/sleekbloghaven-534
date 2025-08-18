@@ -29,7 +29,7 @@ export function useOrders() {
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
   const notificationRef = useRef(notificationSound);
-  const subscriptionRef = useRef<any>(null);
+  const channelRef = useRef<any>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -39,8 +39,8 @@ export function useOrders() {
     notificationRef.current.load();
     
     return () => {
-      if (subscriptionRef.current) {
-        supabase.removeChannel(subscriptionRef.current);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
       }
     };
   }, []);
@@ -64,34 +64,62 @@ export function useOrders() {
   };
 
   const setupRealtimeSubscription = () => {
-    // Önceki subscription'ı temizle
-    if (subscriptionRef.current) {
-      supabase.removeChannel(subscriptionRef.current);
+    // Önceki channel'ı temizle
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
     }
 
-    subscriptionRef.current = supabase
-      .channel('orders-changes')
+    console.log('Setting up real-time subscription for orders...');
+    
+    channelRef.current = supabase
+      .channel('public:orders', {
+        config: {
+          broadcast: { self: true },
+          presence: { key: 'orders' }
+        }
+      })
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'orders' },
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'orders' 
+        },
         (payload) => {
           console.log('Real-time event received:', payload);
           
           if (payload.eventType === 'INSERT') {
             const newOrder = payload.new as Order;
             console.log('New order received:', newOrder);
-            setOrders(prev => [newOrder, ...prev]);
+            
+            // Siparişi listeye ekle (duplicate kontrolü ile)
+            setOrders(prev => {
+              const exists = prev.some(order => order.id === newOrder.id);
+              if (exists) {
+                console.log('Order already exists, skipping...');
+                return prev;
+              }
+              console.log('Adding new order to list');
+              return [newOrder, ...prev];
+            });
             
             // Bildirim sesi çal
             try {
               notificationRef.current.currentTime = 0;
-              notificationRef.current.play().catch(() => {});
+              notificationRef.current.play().catch((e) => {
+                console.log('Could not play notification sound:', e);
+              });
             } catch {}
             
             // Toast bildirimi göster
-            toast.success(t('dashboard.newOrder') || 'Yeni sipariş geldi!', {
+            toast.success('🔔 Yeni sipariş geldi!', {
               description: `${newOrder.customer_name} - ${newOrder.total_amount.toFixed(2)} kr`,
-              duration: 10000,
+              duration: 8000,
+              style: {
+                backgroundColor: '#10B981',
+                color: 'white',
+                border: '2px solid #059669'
+              }
             });
           } else if (payload.eventType === 'UPDATE') {
             console.log('Order updated:', payload.new);
@@ -108,11 +136,23 @@ export function useOrders() {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Real-time subscription active for orders');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Real-time subscription error');
+          // Yeniden bağlanmayı dene
+          setTimeout(() => {
+            console.log('Retrying real-time subscription...');
+            setupRealtimeSubscription();
+          }, 5000);
+        }
+      });
 
-    // Subscription durumunu kontrol et
-    subscriptionRef.current.on('system', {}, (payload) => {
-      console.log('Subscription status:', payload);
+    // Channel durumunu izle
+    channelRef.current.on('system', {}, (payload) => {
+      console.log('Channel system event:', payload);
     });
   };
 

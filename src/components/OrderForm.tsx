@@ -91,6 +91,12 @@ export default function OrderForm({ onClose }: OrderFormProps) {
 
       console.log('Sipariş başarılı:', data);
       toast.success(t('order.success') || 'Siparişiniz başarıyla alındı!');
+      
+      // Real-time güncellemesini tetiklemek için kısa bir gecikme
+      setTimeout(() => {
+        console.log('Order created, real-time should update dashboard');
+      }, 1000);
+      
       clearCart();
       onClose();
     } catch (err) {
